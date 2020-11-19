@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/redux@3.7.2/dist/redux.min.js"></script>
+    <title>#</title>
+    <style>
+        .cell{
+            width: 100px;
+            height: 100px;
+            border:1px black solid;
+            font-size: 50px;
+            text-align: center;
+            box-sizing: border-box;
+            line-height: 100px;
+        }
+        .cell:hover{
+            cursor: pointer;
+        }
+        .board{
+            border:3px black solid;
+            width: 300px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            margin: 100px auto;
+            position: relative;
+        }
+        .reset{
+            font-size: 20px;
+            padding: 5px 10px;
+            margin: 0 auto;
+        }
+        .pack{
+            margin: 0 auto;
+            width: 400px;
+            text-align: center;
+        }
+        .line{
+            position: absolute;
+            top: 0;
+            width: 300px;
+            height: 300px;
+        }
+        .line>line{
+            stroke:red;
+            stroke-width: 3px;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/babel">
+        class Board extends React.Component{
+            constructor(prop){
+                super(prop);
+                this.state=redux.store.getState();
+            }
+            render(){
+                let cells=[];
+                for(let i=0;i<this.state.mark.length;i++)
+                    cells.push(<Cell index={i} mark={this.state.mark[i]} update={this.update.bind(this)} />);
+                if(this.state.winner!==null)
+                    cells.push(<Line start={this.state.winner.start} end={this.state.winner.end}/>); 
+                return <div className="pack"><div className="board">{cells}</div><Reset/></div>; 
+            }
+            update(index){
+                redux.store.dispatch({
+                    type:"udk"
+                    ,index:index
+                });
+            }
+            refresh(){
+                this.setState(redux.store.getState());
+            }
+            componentDidMount(){
+                this.unsubscribe=redux.store.subscribe(this.refresh.bind(this));
+            }
+            componentWillUnmount(){
+                this.unsubscribe();
+            }
+        }
+        let redux={
+            store:null
+            ,reducer:(state,action)=>{
+                switch(action.type){
+                    case "udk":
+                        if(state.mark[action.index]===-1&&state.winner===null){
+                                let mark=state.circle%2;
+                                state.mark[action.index]=mark;
+                                let winner=redux.checkwinner(state.mark);
+                                return {circle:state.circle+1,mark:state.mark,winner:winner};
+                            }
+                        else
+                            return state;
+					case "reset":
+						return{
+							circle:0
+							,mark:[-1,-1,-1,-1,-1,-1,-1,-1,-1]
+							,winner:null
+						};
+                    default:
+                        return state;
+                }
+            }
+            ,checkwinner:(mark)=>{
+                for(let i=0;i<3;i++)
+                    if(mark[i*3]===mark[i*3+1]&&mark[i*3+1]===mark[i*3+2]&&mark[i*3]!==-1)
+                        return {start:i*3,end:i*3+2,win:mark[i*3]};
+                for(let i=0;i<3;i++)
+                    if(mark[i]===mark[i+3]&&mark[i+3]===mark[i+6]&&mark[i]!==-1)
+                        return {start:i,end:i+6,win:mark[i]};
+                if(mark[0]===mark[4]&&mark[4]===mark[8]&&mark[4]!==-1)
+                        return {start:0,end:8,win:mark[4]};
+                if(mark[2]===mark[4]&&mark[4]===mark[6]&&mark[4]!==-1)
+                        return {start:2,end:6,win:mark[4]};
+                return null;
+            }
+        }
+        class Cell extends React.Component{
+            render(){
+                let txt="";
+                if(this.props.mark===0)
+                    txt="O";
+                else if(this.props.mark===1)
+                    txt="X";
+                return <div className="cell" onClick={this.click.bind(this)}>{txt}</div>;
+            }
+            click(){
+                this.props.update(this.props.index);
+            }
+        }
+        class Line extends React.Component{
+            render(){
+                let stx=this.props.start%3*100+50;
+                let sty=Math.floor(this.props.start/3)*100+50;
+                let enx=this.props.end%3*100+50;
+                let eny=Math.floor(this.props.end/3)*100+50;
+                console.log(this.props.end);
+                return <svg className="line"><line x1={stx} y1={sty} x2={enx} y2={eny}/></svg>;
+            }
+        }
+        class Reset extends React.Component{
+            render(){
+                return <button className="reset" onClick={this.reset.bind(this)}>重來</button>
+            }
+            reset(){
+                redux.store.dispatch({
+					type:"reset"
+				});
+            }
+            refresh(){
+                this.setState(redux.store.getState());
+            }
+            componentDidMount(){
+                this.unsubscribe=redux.store.subscribe(this.refresh.bind(this));
+            }
+            componentWillUnmount(){
+                this.unsubscribe();
+            }
+        }
+        
+        window.addEventListener("load",()=>{
+            redux.store=Redux.createStore(redux.reducer,{
+                circle:0
+                ,mark:[-1,-1,-1,-1,-1,-1,-1,-1,-1]
+                ,winner:null
+            });
+            ReactDOM.render(<Board/>,document.body);
+        });
+    </script>
+    <div id=btn></div>
+</body>
+</html>
