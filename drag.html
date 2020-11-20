@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/redux@3.7.2/dist/redux.min.js"></script>
+    <title>#</title>
+    <style>
+        .box{
+            width: 500px;
+            height: 700px;
+            display: inline-block;
+            vertical-align: middle;
+            border:1px solid black;
+            margin: 20px;
+        }
+        .item{
+            height: 50px;
+            width: 50px;
+            margin: 5px;
+            background-color: grey;
+            display: inline-block;
+            vertical-align: top;
+            line-height: 50px;
+            text-align: center;
+            font-size:16px;
+        }
+    </style>
+</head>
+<body>
+    <div class=box id=right-box>
+        <div class=item>1</div>
+        <div class=item>2</div>
+        <div class=item>3</div>
+        <div class=item>4</div>
+    </div>
+    <div class=box id=left-box></div>
+    <script>
+        window.addEventListener("load",()=>{
+            var items=document.getElementsByClassName("item");
+            for(let i=0;i<items.length;i++){
+                items[i].addEventListener("mousedown",drag);
+            }
+        });
+        function drag(mouse){ 
+            this.style.position="absolute";
+            this.style.left=mouse.clientX-10+"px";
+            this.style.top=mouse.clientY-10+"px"; 
+            var rootbox=this.parentNode;
+            var targetbox;
+            if(rootbox.id==="left-box")
+                targetbox=document.getElementById("right-box");
+            else
+                targetbox=document.getElementById("left-box");
+            let move=(mouse)=>{
+                mouse.preventDefault();
+                this.style.left=mouse.clientX-10+"px";
+                this.style.top=mouse.clientY-10+"px"; 
+            }
+            let put=(mouse)=>{
+                let left=parseInt(this.offsetLeft);
+                let top=parseInt(this.offsetTop);
+                let ttop=parseInt(targetbox.offsetTop);
+                let tleft=parseInt(targetbox.offsetLeft);
+                let height=parseInt(targetbox.offsetHeight);
+                let width=parseInt(targetbox.offsetWidth);
+                let rtop=parseInt(rootbox.offsetTop);
+                let rleft=parseInt(rootbox.offsetLeft);
+                let rheight=parseInt(rootbox.offsetHeight);
+                let rwidth=parseInt(rootbox.offsetWidth);
+                if(left>=tleft&&left<=(tleft+width)&&top>=ttop&&top<=(ttop+height)){
+                    targetbox.appendChild(this);
+                    this.style.position="static";
+                }
+                else if(left>=rleft&&left<=(rleft+rwidth)&&top>=rtop&&top<=(rtop+rheight)){
+                    this.style.position="static";
+                }
+                else{
+                    this.style.position="absolute";
+                    this.style.left=mouse.clientX-10+"px";
+                    this.style.top=mouse.clientY-10+"px"; 
+                }
+                document.removeEventListener("mousemove",move);
+                document.removeEventListener("mouseup",put);
+            }
+            document.addEventListener("mousemove",move);
+            document.addEventListener("mouseup",put);
+        }
+    </script>
+</body>
+</html>

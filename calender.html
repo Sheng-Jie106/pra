@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <title>calender</title>
+    <style>
+        .list {
+            display: flex;
+            flex-wrap: wrap;
+            width: 700px;
+            height: 300px;
+        }
+
+        .list>.date {
+            width: 100px;
+            height: 50px;
+            text-align: center;
+        }
+
+        .other-month-date {
+            opacity: 0.4;
+        }
+
+        button {
+            margin: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id=calendar1></div>
+    <hr>
+    <div id=calendar2></div>
+    <script>
+        class calendar {
+            constructor(container) {
+                this.container = container;
+                this.state = {
+                    current: new Date()
+                };
+                this.render();
+            }
+            render() {
+                let head = document.createElement("h3");
+                head.textContent = this.state.current.getFullYear() + " / " + (this.state.current.getMonth() + 1);
+                let list = document.createElement("div");
+                list.className = "list";
+                list.textContent = "";
+                let firstdate = new Date(this.state.current.getFullYear(), this.state.current.getMonth(), 1);
+                let date = new Date(this.state.current.getFullYear(), this.state.current.getMonth(), 1);
+                date.setDate(date.getDate() - date.getDay());
+                let btn = document.createElement("div");
+                let pre = document.createElement("button");
+                pre.textContent = "上個月";
+                pre.addEventListener("click", this.premonth.bind(this));
+                let next = document.createElement("button");
+                next.textContent = "下個月";
+                next.addEventListener("click", this.premonth.bind(this));
+                btn.appendChild(pre);
+                btn.appendChild(next);
+                while (date < firstdate) {
+                    this.renderDate(date, list);
+                    date.setDate(date.getDate() + 1);
+                }
+                while (date.getMonth() === this.state.current.getMonth()) { //如果是該月就+1
+                    this.renderDate(date, list);
+                    date.setDate(date.getDate() + 1);
+                }
+                while (date.getDay() > 0) {
+                    this.renderDate(date, list);
+                    date.setDate(date.getDate() + 1);
+                }
+                this.container.innerHTML = "";
+                this.container.appendChild(head);
+                this.container.appendChild(list);
+                this.container.appendChild(btn);
+            }
+            renderDate(date, list) {
+                let cell = document.createElement("div");
+                cell.className = "date" + (date.getMonth() === this.state.current.getMonth() ? "" :
+                    " other-month-date");
+                cell.textContent = date.getDate();
+                list.appendChild(cell);
+            }
+            premonth() {
+                this.state.current.setMonth(this.state.current.getMonth() - 1);
+                this.render();
+            }
+            nextmonth() {
+                this.state.current.setMonth(this.state.current.getMonth() - 1);
+                this.render();
+            }
+        }
+        let c1 = new calendar(document.querySelector("#calendar1"));
+        let c2 = new calendar(document.querySelector("#calendar2"));
+    </script>
+</body>
+
+</html>
